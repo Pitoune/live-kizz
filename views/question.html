@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Live Kizz</title>
+    </head>
+ 
+    <body>
+        <h1 id="query">Le jeu va bientôt commencer...</h1>
+
+        <form id="question" style="display: none">
+
+            <input id="radio-0" type="radio" name="choices"><span id="choice-0"></span><br>
+            <input id="radio-1" type="radio" name="choices"><span id="choice-1"></span><br>
+            <input id="radio-2" type="radio" name="choices"><span id="choice-2"></span><br>
+            <input id="radio-3" type="radio" name="choices"><span id="choice-3"></span><br>
+
+        <input id="questionId" type="hidden">
+        <input type="submit" value="Répondre">
+
+        </form>
+ 
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:9080');
+            
+            socket.on('message', function(choices) {
+                for ( var i = 0, l = choices.length; i < l; i++ ) {
+                    $('#questionId').val(choices[i]['question_id']);
+                    $('#query').text(choices[i]['query']);
+                    
+                    $('#radio-'+i).val(choices[i]['id']);
+                    $('#choice-'+i).text(choices[i]['text']);
+                    console.log(choices[i]['query']);
+                }
+
+                $("input[type='radio']:checked").each(function(){
+                    $(this).prop('checked', false);
+                });
+                $('form').show();
+                $("input[type='submit']").show();
+            });
+
+            $('form').submit(function(event) {
+                var answer = {};
+                answer.choice = $("input[type='radio']:checked").val();
+                answer.question = $('#questionId').val();
+                socket.emit('save_answer', answer);
+                $("input[type='submit']").hide();
+                event.preventDefault();
+            });
+        </script>
+    </body>
+</html>

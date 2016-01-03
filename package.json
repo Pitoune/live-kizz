@@ -1,0 +1,28 @@
+{
+    "name": "live-kizz",
+    "description": "",
+    "version": "0.0.1",
+    "dependencies": {        
+        "express": "~3.3.4",
+        "socket.io": "~1.2.1",
+        "ent": "~0.1.0",
+        "mysql": "~2.5.4",
+        "ejs": "~1.0.0"
+    },
+    "main": "./live-kizz.js",
+    "author": {
+        "name": "pitoune",
+        "email": "ducoud@gmail.com"
+    },
+    "keywords": [],
+    "licenses": {
+        "type": "none"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/Pitoune/live-kizz.git"
+    },
+    "bugs": {
+        "url": "http://github.com/Pitoune/live-kizz/issues"
+    }
+}
