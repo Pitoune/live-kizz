@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Live Kizz</title>
+    </head>
+ 
+    <body>
+        <div id="playing">
+            <h1 id="query">Le jeu va bientôt commencer...</h1>
+
+            <form id="question" style="display: none">
+
+                <input id="radio-0" type="radio" name="choices"><span id="choice-0"></span><br>
+                <input id="radio-1" type="radio" name="choices"><span id="choice-1"></span><br>
+                <input id="radio-2" type="radio" name="choices"><span id="choice-2"></span><br>
+                <input id="radio-3" type="radio" name="choices"><span id="choice-3"></span><br>
+
+                <input id="questionId" type="hidden">
+                <input type="submit" value="Répondre">
+
+            </form>
+
+            <h1 id="response"></h1>
+        </div>
+
+        <div id="ending" style="display: none">
+            <h1 id="score">Score : <span class="point"></span></h1>
+        </div>
+
+        <script src="/js/jquery/jquery-1.10.1.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:9080');
+            
+            socket.on('question', function(choices) {
+                $('#response').text('');
+                for ( var i = 0, l = choices.length; i < l; i++ ) {
+                    $('#questionId').val(choices[i]['question_id']);
+                    $('#query').text(choices[i]['query']);
+                    
+                    $('#radio-'+i).val(choices[i]['id']);
+                    $('#choice-'+i).text(choices[i]['text']);
+                    console.log(choices[i]['query']);
+                }
+
+                $("input[type='radio']").each(function(){
+                    $(this).prop('disabled', false);
+                    $(this).prop('checked', false);
+                });
+                $('form').show();
+                $("input[type='submit']").show();
+            });
+
+            socket.on('answer', function(choices) {
+                $("input[type='radio']").each(function(){
+                    $(this).prop('disabled', true);
+                });
+                $('#response').text(choices[0]['text']);
+                console.log(choices[0]['text']);
+            });
+
+            socket.on('score', function(score) {
+                $('#playing').hide();
+                $('#ending').show();
+                $('.point').text(score);
+                console.log(score);
+            });
+
+            $('form').submit(function(event) {
+                $("input[type='radio']").each(function(){
+                    $(this).prop('disabled', true);
+                });
+                var answer = {};
+                answer.choice = $("input[type='radio']:checked").val();
+                answer.question = $('#questionId').val();
+                socket.emit('save_answer', answer);
+                $("input[type='submit']").hide();
+                event.preventDefault();
+            });
+        </script>
+    </body>
+</html>

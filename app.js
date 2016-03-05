@@ -1,15 +1,16 @@
 // app.js
-
-var app = require('express')(),
+var express = require('express');
+var app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
     ent = require('ent'),
-    fs = require('fs');
+    fs = require('fs')
+    clients = [];
 
 app.engine('.html', require('ejs').__express);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'html');
-
+app.use(express.static(__dirname + '/public'));
 
 // Connection to MySQL
 var mysql      = require('mysql');
@@ -21,9 +22,9 @@ var connection = mysql.createConnection({
 });
 
 
-// Load main page question.html
+// Load main page player.html
 app.get('/', function (req, res) {
-    res.render('question');
+    res.render('player');
 });
 
 // Load admin page admin.html
@@ -43,7 +44,7 @@ app.get('/admin', function (req, res) {
 
 
 io.sockets.on('connection', function (socket) {
-    var address = socket.handshake.address;
+    clients[socket.id] = socket;
 
     // Connection to MySQL
     var mysql      = require('mysql');
@@ -56,7 +57,7 @@ io.sockets.on('connection', function (socket) {
 
     // Save answer in the database
     socket.on('save_answer', function(answer) {
-        var sqlAnswer  = {username: address, question_id: answer.question, choice_id: answer.choice};
+        var sqlAnswer  = {username: socket.id, question_id: answer.question, choice_id: answer.choice};
         
         var query = connection.query('INSERT INTO answers SET ?', sqlAnswer, function(err, result) {
             if (err)
@@ -72,12 +73,50 @@ io.sockets.on('connection', function (socket) {
 
             if (!err) {
                 console.log(choices);
-                socket.broadcast.emit('message', choices);
+                socket.broadcast.emit('question', choices);
             }
             else {
                 console.log('Error while performing Query.');
             }
         });
+    });
+
+    // Send answer to the players
+    socket.on('send_answer', function(question) {   
+        connection.query('SELECT * from choices c JOIN questions q ON q.answer_id = c.id WHERE q.id = ?', [question], function(err, choices, fields) {
+
+            if (!err) {
+                console.log(choices);
+                socket.broadcast.emit('answer', choices);
+            }
+            else {
+                console.log('Error while performing Query.');
+            }
+        });
+    });
+
+    // Send score to the players
+    socket.on('send_score', function() {   
+        connection.query(
+            'SELECT username, SUM( IF( a.choice_id = q.answer_id, 1, 0 ) ) as score '
+            + 'FROM  answers a '
+            + 'JOIN questions q ON a.question_id = q.id '
+            + 'GROUP BY username', 
+            [],
+            function(err, scores, fields) {
+                if (!err) {
+                    console.log(scores);
+                    for ( var i = 0, l = scores.length; i < l; i++ ) {
+                        if (scores[i]['username'] in clients ) {
+                            clients[scores[i]['username']].emit('score', scores[i]['score']);
+                        }
+                    }
+                }
+                else {
+                    console.log('Error while performing Query.');
+                }
+            }
+        );
     });
 });
 
