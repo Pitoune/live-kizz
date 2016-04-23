@@ -3,45 +3,75 @@
     <head>
         <meta charset="utf-8" />
         <title>Live Kizz</title>
+
+        <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
     </head>
- 
+
     <body>
-        <div id="playing">
-            <h1 id="query">Le jeu va bientôt commencer...</h1>
+        <div class="container">
+            <div id="playing">
+                <h1 id="query">Le jeu va bientôt commencer...</h1>
 
-            <form id="question" style="display: none">
+                <form id="question" style="display: none">
 
-                <input id="radio-0" type="radio" name="choices"><span id="choice-0"></span><br>
-                <input id="radio-1" type="radio" name="choices"><span id="choice-1"></span><br>
-                <input id="radio-2" type="radio" name="choices"><span id="choice-2"></span><br>
-                <input id="radio-3" type="radio" name="choices"><span id="choice-3"></span><br>
+                    <div class="radio">
+                        <label>
+                            <input id="radio-0" type="radio" name="choices">
+                            <span class="radio-text" id="choice-0"></span>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input id="radio-1" type="radio" name="choices">
+                            <span class="radio-text" id="choice-1"></span>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input id="radio-2" type="radio" name="choices">
+                            <span class="radio-text" id="choice-2"></span>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input id="radio-3" type="radio" name="choices">
+                            <span class="radio-text" id="choice-3"></span>
+                        </label>
+                    </div>
 
-                <input id="questionId" type="hidden">
-                <input type="submit" value="Répondre">
+                    <input id="questionId" type="hidden">
+                    <input class="btn btn-primary" type="submit" value="Répondre">
+                </form>
 
-            </form>
+                <h1 class="text-success" id="response"></h1>
+            </div>
 
-            <h1 id="response"></h1>
-        </div>
-
-        <div id="ending" style="display: none">
-            <h1 id="score">Score : <span class="point"></span></h1>
+            <div id="ending" style="display: none">
+                <h1 class="bg-info" id="score">Score : <span class="point"></span></h1>
+            </div>
         </div>
 
         <script src="/js/jquery/jquery-1.10.1.min.js"></script>
+        <script src="/bootstrap/js/bootstrap.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io.connect('http://localhost:9080');
-            
+            //var socket = io.connect('http://192.168.0.100:9080');
+
             socket.on('question', function(choices) {
                 $('#response').text('');
+
+                $(".radio-text").each(function(){
+                    $(this).removeClass('text-success');
+                    $(this).removeClass('text-danger');
+                });
+
                 for ( var i = 0, l = choices.length; i < l; i++ ) {
                     $('#questionId').val(choices[i]['question_id']);
                     $('#query').text(choices[i]['query']);
                     
                     $('#radio-'+i).val(choices[i]['id']);
                     $('#choice-'+i).text(choices[i]['text']);
-                    console.log(choices[i]['query']);
                 }
 
                 $("input[type='radio']").each(function(){
@@ -56,15 +86,23 @@
                 $("input[type='radio']").each(function(){
                     $(this).prop('disabled', true);
                 });
+
                 $('#response').text(choices[0]['text']);
-                console.log(choices[0]['text']);
+
+                $(".radio-text").each(function(){
+                    if ($(this).text() === choices[0]['text'] && $(this).prev().prop('checked')) {
+                        $(this).addClass('text-success');
+                    } 
+                    if ($(this).text() !== choices[0]['text'] && $(this).prev().prop('checked')) {
+                        $(this).addClass('text-danger');
+                    }  
+                });
             });
 
             socket.on('score', function(score) {
                 $('#playing').hide();
                 $('#ending').show();
                 $('.point').text(score);
-                console.log(score);
             });
 
             $('form').submit(function(event) {

@@ -2,20 +2,30 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Live Kizz</title>
+        <title>Live Kizz Admin</title>
+
+        <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
     </head>
 
     <body>
-        <h1>Admin</h1>
+        <div class="container">
+            <h1>Admin</h1>
 
-        <% for(var i=0; i < questions.length; i++) {%>
-            <input type="button" name="question" value="Question" data="<%= questions[i].id %>"><%= questions[i].query %>
-            <input type="button" name="answer" value="Réponse" data="<%= questions[i].id %>"><br/>
-        <% } %>
-        <br>
-        <input type="button" name="score" value="Score">
+            <ul>
+            <% for(var i=0; i < questions.length; i++) {%>
+            <li style="margin-top: 10px">
+                <input class="btn btn-info" type="button" name="question" value="Question" data="<%= questions[i].id %>">
+                <span><%= questions[i].query %></span>
+                <input class="btn btn-success" type="button" name="answer" value="Réponse" data="<%= questions[i].id %>">
+            </li>
+            <% } %>
+            </ul>
+            <br>
+            <input class="btn btn-danger" type="button" name="score" value="Score">
+        </div>
 
         <script src="/js/jquery/jquery-1.10.1.min.js"></script>
+        <script src="/bootstrap/js/bootstrap.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io.connect('http://localhost:9080');
