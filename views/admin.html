@@ -14,9 +14,9 @@
             <ul>
             <% for(var i=0; i < questions.length; i++) {%>
             <li style="margin-top: 10px">
-                <input class="btn btn-info" type="button" name="question" value="Question" data="<%= questions[i].id %>">
+                <input class="btn btn-info" type="button" name="question" value="Question" data="<%= i %>">
                 <span><%= questions[i].query %></span>
-                <input class="btn btn-success" type="button" name="answer" value="Réponse" data="<%= questions[i].id %>">
+                <input class="btn btn-success" type="button" name="answer" value="Réponse" data="<%= i %>">
             </li>
             <% } %>
             </ul>
@@ -34,7 +34,7 @@
                 socket.emit('send_question', $(this).attr('data'));
                 $(this).hide();
             });
-            
+
             $("input[name='answer']").click(function() {
                 socket.emit('send_answer', $(this).attr('data'));
                 $(this).hide();

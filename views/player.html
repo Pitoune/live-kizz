@@ -59,7 +59,7 @@
             var socket = io.connect('http://localhost:9080');
             //var socket = io.connect('http://192.168.0.100:9080');
 
-            socket.on('question', function(choices) {
+            socket.on('question', function(question) {
                 $('#response').text('');
 
                 $(".radio-text").each(function(){
@@ -67,12 +67,12 @@
                     $(this).removeClass('text-danger');
                 });
 
-                for ( var i = 0, l = choices.length; i < l; i++ ) {
-                    $('#questionId').val(choices[i]['question_id']);
-                    $('#query').text(choices[i]['query']);
-                    
-                    $('#radio-'+i).val(choices[i]['id']);
-                    $('#choice-'+i).text(choices[i]['text']);
+                for ( var i = 0, l = question.choices.length; i < l; i++ ) {
+                    $('#questionId').val(i);
+                    $('#query').text(question.query);
+ 
+                    $('#radio-'+i).val(i);
+                    $('#choice-'+i).text(question.choices[i]);
                 }
 
                 $("input[type='radio']").each(function(){
@@ -83,20 +83,20 @@
                 $("input[type='submit']").show();
             });
 
-            socket.on('answer', function(choices) {
+            socket.on('answer', function(answer) {
                 $("input[type='radio']").each(function(){
                     $(this).prop('disabled', true);
                 });
 
-                $('#response').text(choices[0]['text']);
+                $('#response').text(answer);
 
                 $(".radio-text").each(function(){
-                    if ($(this).text() === choices[0]['text'] && $(this).prev().prop('checked')) {
+                    if ($(this).text() === answer && $(this).prev().prop('checked')) {
                         $(this).addClass('text-success');
-                    } 
-                    if ($(this).text() !== choices[0]['text'] && $(this).prev().prop('checked')) {
+                    }
+                    if ($(this).text() !== answer && $(this).prev().prop('checked')) {
                         $(this).addClass('text-danger');
-                    }  
+                    }
                 });
             });
 
@@ -111,9 +111,9 @@
                     $(this).prop('disabled', true);
                 });
                 var answer = {};
-                answer.choice = $("input[type='radio']:checked").val();
+                answer.choice = $("input[type='radio']:checked").next().text();
                 answer.question = $('#questionId').val();
-                socket.emit('save_answer', answer);
+                socket.emit('receive_answer', answer.choice);
                 $("input[type='submit']").hide();
                 event.preventDefault();
             });
