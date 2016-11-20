@@ -44,6 +44,8 @@
                     <input class="btn btn-primary" type="submit" value="Répondre">
                 </form>
 
+                <h1 id="time"></h1>
+
                 <h1 class="text-success" id="response"></h1>
             </div>
 
@@ -57,7 +59,6 @@
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io.connect('http://localhost:9080');
-            //var socket = io.connect('http://192.168.0.100:9080');
 
             socket.on('question', function(question) {
                 $('#response').text('');
@@ -106,14 +107,17 @@
                 $('.point').text(score);
             });
 
+            socket.on('remaining_time', function(time) {
+                console.log(time);
+                $('#time').text(time);
+            });
+
             $('form').submit(function(event) {
                 $("input[type='radio']").each(function(){
                     $(this).prop('disabled', true);
                 });
-                var answer = {};
-                answer.choice = $("input[type='radio']:checked").next().text();
-                answer.question = $('#questionId').val();
-                socket.emit('receive_answer', answer.choice);
+                var answer = $("input[type='radio']:checked").next().text();
+                socket.emit('receive_answer', answer);
                 $("input[type='submit']").hide();
                 event.preventDefault();
             });

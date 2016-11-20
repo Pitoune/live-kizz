@@ -30,7 +30,8 @@
     "express": "~4.14.0",
     "immutable": "3.8.1",
     "mysql": "~2.11.1",
-    "socket.io": "~1.4.6"
+    "socket.io": "~1.4.6",
+    "tasktimer": "~1.0.0"
   },
   "eslintConfig": {
     "extends": "airbnb"

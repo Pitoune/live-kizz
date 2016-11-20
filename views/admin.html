@@ -11,17 +11,16 @@
         <div class="container">
             <h1>Admin</h1>
 
+            <input class="btn btn-danger" type="button" name="start" value="Start">
+
             <ul>
             <% for(var i=0; i < questions.length; i++) {%>
             <li style="margin-top: 10px">
-                <input class="btn btn-info" type="button" name="question" value="Question" data="<%= i %>">
                 <span><%= questions[i].query %></span>
-                <input class="btn btn-success" type="button" name="answer" value="Réponse" data="<%= i %>">
             </li>
             <% } %>
             </ul>
             <br>
-            <input class="btn btn-danger" type="button" name="score" value="Score">
         </div>
 
         <script src="/js/jquery/jquery-1.10.1.min.js"></script>
@@ -30,18 +29,9 @@
         <script>
             var socket = io.connect('http://localhost:9080');
 
-            $("input[name='question']").click(function() {
-                socket.emit('send_question', $(this).attr('data'));
+            $("input[name='start']").click(function() {
+                socket.emit('start');
                 $(this).hide();
-            });
-
-            $("input[name='answer']").click(function() {
-                socket.emit('send_answer', $(this).attr('data'));
-                $(this).hide();
-            });
-
-            $("input[name='score']").click(function() {
-                socket.emit('send_score');
             });
         </script>
     </body>

@@ -13,6 +13,7 @@ const ejs = require('ejs');
 const app = express();
 const server = http.createServer(app);
 const io = socketIO.listen(server);
+var TaskTimer = require('tasktimer');
 
 app.use(express.static('public'));
 app.engine('.html', ejs.renderFile);
@@ -24,11 +25,13 @@ const questions = [
     query: 'Foo ?',
     choices: ['bar', 'baz'],
     answer: 'bar',
+    time: 5,
   },
   {
-    query: 'Foo ?',
+    query: 'Foo2 ?',
     choices: ['bar', 'baz'],
     answer: 'bar',
+    time: 7,
   },
 ];
 
@@ -59,21 +62,45 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('disconnect', function () { player.leave() });
 
-  socket.on('send_question', function (idx) {
-    const question = questions[idx];
-    game.setQuestion(question);
-    socket.broadcast.emit('question', question);
+  socket.on('start', function () {
+    var idx = 0;
+    var question = questions[idx];
+    var time = question.time;
+    var timer = new TaskTimer(1000);
+
+    var nextQuestion = function () {
+      question = questions[idx];
+      time = question.time;
+      game.setQuestion(question);
+      socket.broadcast.emit('question', question);
+      idx++;
+    };
+
+    nextQuestion();
+
+    timer.on('tick', function () {
+      if (time >= 0) socket.broadcast.emit('remaining_time', time);
+
+      if (time === 0) {
+        socket.broadcast.emit('answer', question.answer);
+
+        setTimeout(function() {
+          if (idx === questions.length) {
+            timer.stop();
+            game.playerScores();
+          } else {
+            nextQuestion();
+          }
+        }, 3000);
+      }
+      time--;
+    });
+    timer.start();
   });
 
   socket.on('receive_answer', function (answer) {
     player.submitAnswer(answer);
   });
-
-  socket.on('send_answer', function (idx) {
-      socket.broadcast.emit('answer', questions[idx].answer);
-  });
-
-  socket.on('send_score', function () { game.playerScores() });
 });
 
 server.listen(9080);
