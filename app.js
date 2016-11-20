@@ -22,17 +22,44 @@ app.set('view engine', 'html');
 
 const questions = [
   {
-    query: 'Foo ?',
-    choices: ['bar', 'baz'],
+    query : 'Foo ?',
+    choices : [
+      {
+        text : 'bar'
+      },
+      {
+        text : 'baz'
+      }
+    ],
     answer: 'bar',
-    time: 5,
+     time: 2,
   },
   {
-    query: 'Foo2 ?',
-    choices: ['bar', 'baz'],
-    answer: 'bar',
-    time: 7,
+    query : 'Foo2 ?',
+    choices : [
+      {
+        text : 'bar'
+      },
+      {
+        text : 'baz'
+      }
+    ],
+    answer: 'baz',
+    time: 2,
   },
+  {
+    query : 'Foo3 ?',
+    choices : [
+      {
+        text : 'bar'
+      },
+      {
+        text : 'baz'
+      }
+    ],
+    answer: 'baz',
+    time: 2,
+  }
 ];
 
 /**
@@ -43,7 +70,7 @@ app.get('/', function (req, res) {
 });
 
 app.get('/admin', function (req, res) {
-  res.render('admin', { questions: questions });
+  res.render('admin');
 });
 
 /**
@@ -62,6 +89,8 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('disconnect', function () { player.leave() });
 
+  socket.on('get_questions', function () { socket.emit('questions', questions) });
+
   socket.on('start', function () {
     var idx = 0;
     var question = questions[idx];
@@ -73,13 +102,17 @@ io.sockets.on('connection', function (socket) {
       time = question.time;
       game.setQuestion(question);
       socket.broadcast.emit('question', question);
+      socket.emit('question', idx);
       idx++;
     };
 
     nextQuestion();
 
     timer.on('tick', function () {
-      if (time >= 0) socket.broadcast.emit('remaining_time', time);
+      if (time >= 0) {
+        socket.broadcast.emit('remaining_time', time);
+        socket.emit('remaining_time', time);
+      }
 
       if (time === 0) {
         socket.broadcast.emit('answer', question.answer);

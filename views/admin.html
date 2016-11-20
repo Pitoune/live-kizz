@@ -2,36 +2,67 @@
 <html>
     <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Live Kizz Admin</title>
 
         <link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css">
     </head>
 
     <body>
-        <div class="container">
-            <h1>Admin</h1>
+        <div id="admin" class="container">
+            <h1>Administration</h1>
 
-            <input class="btn btn-danger" type="button" name="start" value="Start">
+            <button v-if="!started" v-on:click="start" class="btn btn-danger">Démarrer</button>
 
-            <ul>
-            <% for(var i=0; i < questions.length; i++) {%>
-            <li style="margin-top: 10px">
-                <span><%= questions[i].query %></span>
-            </li>
-            <% } %>
-            </ul>
-            <br>
+            <h3>Temps restant pour la question en cours : {{ time }}</h3>
+
+            <div v-for="question in questions">
+                <div :class="question.class">
+                    Question: {{ question.query }} ({{ question.time }} sec)
+                    <li v-for="choice in question.choices">
+                        {{ choice.text }}
+                        <span v-if="choice.text == question.answer" class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                    </li>
+                </div>
+            </div>
         </div>
 
-        <script src="/js/jquery/jquery-1.10.1.min.js"></script>
-        <script src="/bootstrap/js/bootstrap.min.js"></script>
+        <script src="https://unpkg.com/vue/dist/vue.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script>
             var socket = io.connect('http://localhost:9080');
 
-            $("input[name='start']").click(function() {
-                socket.emit('start');
-                $(this).hide();
+            var admin = new Vue({
+                el: '#admin',
+                data: {
+                    questions : [],
+                    time: 0,
+                    started: false
+                },
+                created: function () {
+                    socket.emit('get_questions');
+                },
+                methods: {
+                    start: function (event) {
+                        this.started = true;
+                        socket.emit('start');
+                    }
+                }
+            });
+
+            socket.on('questions', function(questions) {
+                admin.questions = questions;
+            });
+
+            socket.on('question', function(idx) {
+                if (admin.questions[idx - 1]) {
+                    admin.questions[idx - 1].class = 'bg-info';
+                }
+                admin.questions[idx].class = 'bg-primary';
+            });
+
+            socket.on('remaining_time', function(time) {
+                admin.time = time;
             });
         </script>
     </body>
