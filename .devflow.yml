@@ -1,12 +1,9 @@
-http:
-  server: node
-  port: 4200
-
 stack:
   node:
     version: 7.5
-    port: 4200
-
-deployment:
-  install:
-    - npm install
+    deployment:
+      build:
+        - apt-get install libssh2-dev
+      install:
+        - npm install
+      start: "npm start"
