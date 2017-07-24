@@ -1,7 +1,10 @@
+http:
+  port: 3000
+
 stack:
   node:
     version: 7.5
     deployment:
       install:
-        - npm install
-      start: "npm start"
+        - npm init --yes && npm install --save
+      start: "node app.js"
